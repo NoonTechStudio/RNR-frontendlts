@@ -1420,7 +1420,7 @@ const PoolPartyModal = ({
                   ? 'Session Fully Booked'
                   : 'Not Enough Capacity'
               ) : (
-                `Pay Token ₹{tokenAmount.toLocaleString()}`
+                `Pay Token ₹${tokenAmount.toLocaleString()}`
               )}
             </button>
             <p className="text-sm text-gray-500 text-center mt-3">
