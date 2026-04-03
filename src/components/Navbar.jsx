@@ -68,6 +68,13 @@ function Navbar() {
           </ul>
         </nav>
 
+        {/* CTA Button - Desktop */}
+        {!isScrolled && (
+          <button className="hidden md:block bg-[#008DDA] text-white px-4 py-1.5 lg:px-6 lg:py-2 rounded-full font-medium hover:bg-[#0480c3] transition-colors shadow-md whitespace-nowrap text-sm lg:text-base">
+            Book Now →
+          </button>
+        )}
+
         {/* Mobile Menu Compact Drawer */}
         <div
           className={`fixed top-0 right-0 h-full w-64 xs:w-72 bg-white/95 backdrop-blur-sm shadow-xl z-40 transition-transform duration-300 ease-in-out md:hidden ${
