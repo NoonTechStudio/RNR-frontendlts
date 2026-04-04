@@ -26,20 +26,19 @@ function Navbar() {
         isScrolled ? 'justify-center' : 'justify-between'
       }`}>
         
-        {/* Logo - hidden when scrolled */}
-        <div className={`flex items-center ${isScrolled ? 'hidden' : 'block'}`}>
-          <Link to="/" className="text-3xl font-bold text-black">
-            <img
-              className="w-28 sm:w-32 md:w-36 h-auto" 
-              src={Logo}
-              alt="Rest & Relax logo"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-          </Link>
-        </div>
-
-        {/* Spacer to balance layout when logo is hidden and not scrolled */}
-        {!isScrolled && <div className="hidden md:block w-28 sm:w-32 md:w-36"></div>}
+        {/* Logo */}
+        {!isScrolled && (
+          <div className="flex items-center">
+            <Link to="/" className="text-3xl font-bold text-black">
+              <img
+                className="w-28 sm:w-32 md:w-36 h-auto" 
+                src={Logo}
+                alt="Rest & Relax logo"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </Link>
+          </div>
+        )}
 
         {/* Mobile Menu Button (Hamburger) */}
         <button 
@@ -56,7 +55,7 @@ function Navbar() {
           aria-label="Main navigation"
           className={`hidden md:block transition-all duration-300 ease-in-out ${
             isScrolled
-              ? 'bg-white/30 backdrop-blur-md rounded-full shadow-md px-6 lg:px-8 py-2 md:py-3 mx-auto' 
+              ? 'bg-white/30 backdrop-blur-md rounded-full shadow-md px-6 lg:px-8 py-2 md:py-3' 
               : 'bg-transparent'
           }`}
         >
@@ -69,8 +68,12 @@ function Navbar() {
           </ul>
         </nav>
 
-        {/* Invisible spacer to balance layout when not scrolled */}
-        {!isScrolled && <div className="hidden md:block w-28 sm:w-32 md:w-36"></div>}
+        {/* CTA Button - Desktop */}
+        {!isScrolled && (
+          <button className="hidden md:block bg-[#008DDA] text-white px-4 py-1.5 lg:px-6 lg:py-2 rounded-full font-medium hover:bg-[#0480c3] transition-colors shadow-md whitespace-nowrap text-sm lg:text-base">
+            Book Now →
+          </button>
+        )}
 
         {/* Mobile Menu Compact Drawer */}
         <div
