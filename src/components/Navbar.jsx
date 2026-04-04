@@ -53,7 +53,7 @@ function Navbar() {
         <nav
           role="navigation"
           aria-label="Main navigation"
-          className={`hidden md:block mx-auto transition-all duration-300 ease-in-out ${
+          className={`hidden md:block transition-all duration-300 ease-in-out ${
             isScrolled
               ? 'bg-white/30 backdrop-blur-md rounded-full shadow-md px-6 lg:px-8 py-2 md:py-3' 
               : 'bg-transparent'
@@ -67,6 +67,13 @@ function Navbar() {
             <li><Link to="/contact-us" className="hover:text-[#008DDA] transition-colors whitespace-nowrap">Contact Us</Link></li>
           </ul>
         </nav>
+
+        {/* CTA Button - Desktop */}
+        {!isScrolled && (
+          <button className="hidden md:block bg-[#008DDA] text-white px-4 py-1.5 lg:px-6 lg:py-2 rounded-full font-medium hover:bg-[#0480c3] transition-colors shadow-md whitespace-nowrap text-sm lg:text-base">
+            Book Now →
+          </button>
+        )}
 
         {/* Mobile Menu Compact Drawer */}
         <div
