@@ -67,15 +67,8 @@ function Navbar() {
             <li><Link to="/contact-us" className="hover:text-[#008DDA] transition-colors whitespace-nowrap">Contact Us</Link></li>
           </ul>
         </nav>
-
-        {/* CTA Button - Desktop */}
-        {!isScrolled && (
-          <button className="hidden md:block bg-[#008DDA] text-white px-4 py-1.5 lg:px-6 lg:py-2 rounded-full font-medium hover:bg-[#0480c3] transition-colors shadow-md whitespace-nowrap text-sm lg:text-base">
-            Book Now →
-          </button>
-        )}
-
-        {/* Mobile Menu Compact Drawer */}
+        {/* Spacer to balance logo and center nav links */}
+        {!isScrolled && <div className="hidden md:block w-28 sm:w-32 md:w-36" aria-hidden="true" />}
         <div
           className={`fixed top-0 right-0 h-full w-64 xs:w-72 bg-white/95 backdrop-blur-sm shadow-xl z-40 transition-transform duration-300 ease-in-out md:hidden ${
             isMenuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -95,9 +88,6 @@ function Navbar() {
               <li><Link to="/memories" onClick={toggleMenu} className="hover:text-[#008DDA] transition-colors">Memories</Link></li>
               <li><Link to="/contact-us" onClick={toggleMenu} className="hover:text-[#008DDA] transition-colors">Contact Us</Link></li>
             </ul>
-            <button onClick={toggleMenu} className="bg-[#008DDA] text-white w-full px-4 py-2 mt-10 rounded-full font-sm hover:bg-[#0480c3] transition-colors shadow-lg">
-                Book Now →
-            </button>
           </nav>
         </div>
         

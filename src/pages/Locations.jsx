@@ -612,12 +612,12 @@ setLocations(locationsData);
                                       View Details
                                       <ArrowRight className="w-4 h-4" />
                                     </a>
-                                    <button
-                                      type="button"
+                                    <a
+                                      href={`/locations-details/${location._id}`}
                                       className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg text-[#008DDA] bg-white border border-[#008DDA] hover:bg-blue-50 transition-colors duration-300"
                                     >
                                       Book Now
-                                    </button>
+                                    </a>
                                     {(location.poolPartyConfig?.isSharedPoolCreatedFromHere ||
                                       location.poolPartyConfig?.isPrivatePoolCreatedFromHere) && (
                                       <button

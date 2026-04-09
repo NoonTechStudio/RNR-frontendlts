@@ -3,7 +3,6 @@ import { MapPin, Star, ArrowRight } from 'lucide-react';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_CONNECTION_HOST;
-
 const Location = () => {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,7 +131,7 @@ const Location = () => {
       {/* Location Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
-        {locations.map((location, index) => {
+        {locations.slice(0, 4).map((location, index) => {
           const mainImageUrl = getMainImageUrl(location);
           
           return (
@@ -149,7 +148,6 @@ const Location = () => {
                     alt={location.name}
                     loading="lazy"
                     onError={(e) => handleImageError(e, location.name)}
-                    onLoad={() => console.log(`✅ Image loaded for ${location.name}:`, mainImageUrl)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
@@ -197,24 +195,28 @@ const Location = () => {
                     View Details
                     <ArrowRight className="w-5 h-5" />
                   </a>
-                  <button 
-                    type="button" 
+                  <a 
+                    href={`/locations-details/${location._id}`} 
                     className="inline-flex items-center gap-2 px-8 py-4 text-base font-semibold rounded-xl text-[#008DDA] bg-white border-2 border-[#008DDA] hover:bg-indigo-50 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   >
                     Book Now
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
           );
         })}
 
-        {locations.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No locations found.</p>
-          </div>
-        )}
-
+        {/* See All Locations Button */}
+        <div className="flex justify-center pt-8">
+          <a
+            href="/locations"
+            className="inline-flex items-center gap-2 px-10 py-4 text-lg font-bold rounded-xl text-white bg-[#008DDA] hover:bg-[#0278b8] transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+          >
+            See All Locations
+            <ArrowRight className="w-6 h-6" />
+          </a>
+        </div>
       </div>
     </section>
   );
