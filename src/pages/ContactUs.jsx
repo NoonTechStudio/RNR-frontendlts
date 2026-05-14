@@ -24,6 +24,7 @@ const PROPERTY_LOCATIONS = [
     name: "Misty-Wood Villa",
     location: "15 Km from Vadodara",
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sMisty%20Wood!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+    directionsUrl: "https://www.google.com/maps/search/?api=1&query=Misty+Wood+Villa+Vadodara+Gujarat",
     image: "https://placehold.co/400x250/008DDA/ffffff?text=Misty-Wood",
   },
   {
@@ -31,6 +32,7 @@ const PROPERTY_LOCATIONS = [
     name: "Riverfront Resort",
     location: "Savli-Timba Road",
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sRiverfront!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+    directionsUrl: "https://www.google.com/maps/search/?api=1&query=Riverfront+Resort+Savli+Timba+Road+Vadodara",
     image: "https://placehold.co/400x250/008DDA/ffffff?text=Riverfront",
   },
   {
@@ -38,6 +40,7 @@ const PROPERTY_LOCATIONS = [
     name: "Ambawadi Getaway",
     location: "Near Vadodara",
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sAmbawadi!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+    directionsUrl: "https://www.google.com/maps/search/?api=1&query=Ambawadi+Getaway+Vadodara+Gujarat",
     image: "https://placehold.co/400x250/008DDA/ffffff?text=Ambawadi",
   },
   {
@@ -45,6 +48,7 @@ const PROPERTY_LOCATIONS = [
     name: "Swarg - Bunglow No. 14",
     location: "Exclusive Private Area",
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sSwarg%20Bunglow!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+    directionsUrl: "https://www.google.com/maps/search/?api=1&query=Swarg+Bunglow+No+14+Vadodara+Gujarat",
     image: "https://placehold.co/400x250/008DDA/ffffff?text=Swarg",
   },
 ];
@@ -312,7 +316,7 @@ const ContactUs = () => {
                             
                             {/* CTA Button */}
                             <a 
-                                href={location.mapUrl}
+                                href={location.directionsUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold rounded-lg text-white bg-[${PRIMARY_COLOR}] hover:bg-[#0278b8] transition-colors duration-300`}
