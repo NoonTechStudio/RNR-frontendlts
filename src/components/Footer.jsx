@@ -1,53 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, MapPin, Phone, Mail } from 'lucide-react';
 
 import Logo from '../assets/Images/PLogo.png';
 
-// API base URL - replace with your actual API base URL
-const API_BASE_URL = import.meta.env.VITE_API_CONNECTION_HOST;
+const FOOTER_LOCATIONS = [
+  { name: 'Swarg Maru Gaam', url: 'https://maps.app.goo.gl/L8RzR4zsAU3Nkrg7A' },
+  { name: 'Misty Wood Farm House', url: 'https://maps.app.goo.gl/LjmU8dcJjRu2XTfW9' },
+  { name: 'Ambawadi Resort', url: 'https://maps.app.goo.gl/hN4qKPgcYaJN9MuC7' },
+];
 
 const Footer = () => {
-  const [footerLocations, setFooterLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const currentYear = new Date().getFullYear();
-
-  // Fetch locations from API
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/locations`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch locations: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Transform API data to match the expected format
-        // Adjust this based on your actual API response structure
-        const transformedLocations = data.map(location => ({
-          name: location.name || location.title || 'Unnamed Location',
-          slug: location.slug || location.id || 'unknown'
-        }));
-        
-        // Limit to 4 locations for the footer
-        setFooterLocations(transformedLocations.slice(0, 4));
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching locations:', err);
-        setError('Failed to load locations');
-        // Optionally, you can set some fallback locations here
-        setFooterLocations([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLocations();
-  }, []);
 
   return (
     <footer className="bg-gradient-to-b from-gray-50 to-gray-100 text-gray-700 pt-16 pb-8 border-t border-gray-200">
@@ -121,34 +85,21 @@ const Footer = () => {
           {/* Column 3: Our Locations */}
           <div>
             <h3 className="text-base font-semibold text-gray-900 mb-5">Our Locations</h3>
-            {loading ? (
-              <div className="text-sm text-gray-500">Loading locations...</div>
-            ) : error ? (
-              <div className="text-sm text-red-500">{error}</div>
-            ) : footerLocations.length > 0 ? (
-              <ul className="space-y-3">
-                {footerLocations.map((location, index) => (
-                  <li key={`${location.slug}-${index}`}>
-                    <Link 
-                      to={`/locations-details/${location.slug}`} 
-                      className="text-[12px] text-gray-600 hover:text-[#008DDA] transition-colors duration-300"
-                    >
-                      {location.name}
-                    </Link>
-                  </li>
-                ))}
-                <li>
-                  <Link 
-                    to="/locations" 
-                    className="text-sm text-[#008DDA] hover:text-[#0278b8] font-medium transition-colors duration-300 inline-flex items-center gap-1"
+            <ul className="space-y-3">
+              {FOOTER_LOCATIONS.map((location) => (
+                <li key={location.name}>
+                  <a
+                    href={location.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[12px] text-gray-600 hover:text-[#008DDA] transition-colors duration-300 inline-flex items-center gap-1"
                   >
-                    View All →
-                  </Link>
+                    <MapPin className="w-3 h-3 flex-shrink-0" />
+                    {location.name}
+                  </a>
                 </li>
-              </ul>
-            ) : (
-              <div className="text-sm text-gray-500">No locations available</div>
-            )}
+              ))}
+            </ul>
           </div>
           
           {/* Column 4: Contact Details */}
