@@ -1,53 +1,62 @@
-import React, { useState } from 'react';
-import { Mail, MapPin, Phone, MessageSquare, Briefcase, User, Send, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, MapPin, Phone, MessageSquare, Briefcase, User, Send, CheckCircle, ChevronDown, ChevronUp, ExternalLink, ArrowRight } from 'lucide-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-// Define the primary color for consistency
+// Define primary color for consistency
 const PRIMARY_COLOR = '#008DDA';
 const PRIMARY_COLOR_CLASS = 'text-[#008DDA]';
 
-// Data extracted from Footer.jsx for the client's office
+const API_BASE_URL = import.meta.env.VITE_API_CONNECTION_HOST;
+
+// Corporate Office Info
 const OFFICE_CONTACT_INFO = {
   address: "210, Silver Coin, Shrenikpark charrasta, B.P.C. Road, Akota, Vadodara - 390020, Gujarat",
   phones: ["+91 90990 48961", "+91 90990 48960"],
   email: "info@restandrelax.in",
-  // Placeholder Google Maps embed URL for the Vadodara office
   officeMapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sAkota%2C%20Vadodara%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
 };
 
-// Mock data for multiple properties, based on names found in other files
-const PROPERTY_LOCATIONS = [
-  {
-    id: 1,
-    name: "Misty-Wood Villa",
-    location: "15 Km from Vadodara",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sMisty%20Wood!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
-    image: "https://placehold.co/400x250/008DDA/ffffff?text=Misty-Wood",
-  },
-  {
-    id: 2,
-    name: "Riverfront Resort",
-    location: "Savli-Timba Road",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sRiverfront!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
-    image: "https://placehold.co/400x250/008DDA/ffffff?text=Riverfront",
-  },
-  {
-    id: 3,
-    name: "Ambawadi Getaway",
-    location: "Near Vadodara",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sAmbawadi!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
-    image: "https://placehold.co/400x250/008DDA/ffffff?text=Ambawadi",
-  },
-  {
-    id: 4,
-    name: "Swarg - Bunglow No. 14",
-    location: "Exclusive Private Area",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11946.336450410793!2d73.17855734898734!3d22.28585465551275!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc442e39196b7%3A0x6715f5a89326f658!2sSwarg%20Bunglow!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
-    image: "https://placehold.co/400x250/008DDA/ffffff?text=Swarg",
-  },
-];
+// Helper to construct Google Maps embed URL using lat/lng coordinates or address string
+const getMapEmbedUrl = (location) => {
+  const lat = location.coordinates?.lat;
+  const lng = location.coordinates?.lng;
+
+  if (lat && lng) {
+    return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+  }
+
+  const queryStr = [
+    location.name,
+    location.address?.line1,
+    location.address?.city,
+    location.address?.state
+  ].filter(Boolean).join(', ');
+
+  return `https://maps.google.com/maps?q=${encodeURIComponent(queryStr)}&z=15&output=embed`;
+};
+
+// Helper to construct Google Maps directions/search external link
+const getDirectionsUrl = (location) => {
+  const lat = location.coordinates?.lat;
+  const lng = location.coordinates?.lng;
+
+  if (lat && lng) {
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  }
+
+  const queryStr = [
+    location.name,
+    location.address?.line1,
+    location.address?.city,
+    location.address?.state
+  ].filter(Boolean).join(', ');
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryStr)}`;
+};
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -58,7 +67,39 @@ const ContactUs = () => {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState(null); // 'success' or 'error'
+  const [submissionStatus, setSubmissionStatus] = useState(null);
+
+  // Dynamic Location state
+  const [locations, setLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(4);
+  const navigate = useNavigate();
+
+  // Fetch dynamic location list from backend
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        setLoadingLocations(true);
+        const res = await axios.get(`${API_BASE_URL}/locations`);
+        if (res.data && Array.isArray(res.data)) {
+          setLocations(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching locations on contact page:", err);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  const handleToggleLoadMore = () => {
+    if (visibleCount >= locations.length) {
+      setVisibleCount(4);
+    } else {
+      setVisibleCount(prev => Math.min(prev + 4, locations.length));
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,17 +111,11 @@ const ContactUs = () => {
     setIsSubmitting(true);
     setSubmissionStatus(null);
 
-    // --- Placeholder Submission Logic ---
     setTimeout(() => {
-      // In a real application, you would send this data to a server.
       console.log('Form submitted:', formData);
       setIsSubmitting(false);
-      
-      // Simulate success
       setSubmissionStatus('success');
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-      
-      // Clear status after 5 seconds
       setTimeout(() => setSubmissionStatus(null), 5000);
     }, 1500);
   };
@@ -128,14 +163,11 @@ const ContactUs = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen font-inter">
-        <Navbar />
+      <Navbar />
       
       {/* Header Section */}
       <div className="bg-white pt-24 pb-16 sm:pt-32 sm:pb-24 border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* <p className={`text-lg font-semibold uppercase tracking-wider ${PRIMARY_COLOR_CLASS} mb-2`}>
-            24/7 Support
-          </p> */}
           <h1 className="text-5xl sm:text-7xl text-gray-900 tracking-tight">
             Connect with Our Team
           </h1>
@@ -185,17 +217,17 @@ const ContactUs = () => {
 
               {/* Map Embed - Office Location */}
               <div className="rounded-xl overflow-hidden shadow-xl mt-8">
-                  <iframe
-                      src={OFFICE_CONTACT_INFO.officeMapUrl}
-                      title="Office Location"
-                      width="100%"
-                      height="250"
-                      style={{ border: 0 }}
-                      allowFullScreen=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      className="rounded-xl"
-                  ></iframe>
+                <iframe
+                  src={OFFICE_CONTACT_INFO.officeMapUrl}
+                  title="Office Location"
+                  width="100%"
+                  height="250"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="rounded-xl"
+                ></iframe>
               </div>
             </div>
 
@@ -269,65 +301,128 @@ const ContactUs = () => {
         </div>
       </section>
 
-      {/* Property Locations Section - Enhanced Cards */}
+      {/* Property Locations Section - Dynamic from API with Coordinates & Load More */}
       <section className="bg-gray-100 py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <header className="text-center mb-16">
-                <h2 className="text-4xl sm:text-5xl text-gray-900 font-extrabold tracking-tight">
-                    Find Your Perfect Location
-                </h2>
-                <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
-                    Explore our properties and see exactly where your next perfect getaway awaits.
-                </p>
-            </header>
+          <header className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl text-gray-900 font-extrabold tracking-tight">
+              Find Your Perfect Location
+            </h2>
+            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+              Explore our properties and see exactly where your next perfect getaway awaits.
+            </p>
+          </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {PROPERTY_LOCATIONS.map((location) => (
+          {loadingLocations ? (
+            <div className="text-center py-12 text-gray-500 font-medium animate-pulse text-lg">
+              Loading locations and map coordinates...
+            </div>
+          ) : locations.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 font-medium text-lg">
+              No locations available at the moment.
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {locations.slice(0, visibleCount).map((location) => {
+                  const mapEmbedUrl = getMapEmbedUrl(location);
+                  const directionsUrl = getDirectionsUrl(location);
+                  const addressText = [
+                    location.address?.line2 || location.address?.line1,
+                    location.address?.city
+                  ].filter(Boolean).join(', ') || 'Gujarat';
+
+                  return (
                     <div 
-                        key={location.id} 
-                        className="relative bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 group transform transition-all duration-500 hover:shadow-2xl hover:-translate-y-1"
+                      key={location._id} 
+                      className="relative bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 group transform transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 flex flex-col justify-between"
                     >
-                        {/* Map Embed as Card Background */}
+                      <div>
+                        {/* Map Embed Header */}
                         <div className="relative h-48 bg-gray-200">
-                            <iframe
-                                src={location.mapUrl}
-                                title={`${location.name} Map`}
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0 }}
-                                allowFullScreen=""
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                className="transition-all duration-500 group-hover:opacity-70"
-                            ></iframe>
-                            <div className="absolute inset-0 bg-black/10"></div> {/* Subtle Overlay */}
+                          <iframe
+                            src={mapEmbedUrl}
+                            title={`${location.name} Map`}
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="transition-all duration-500 group-hover:opacity-80"
+                          ></iframe>
+                          <div className="absolute inset-0 bg-black/5 pointer-events-none"></div>
                         </div>
 
                         <div className="p-6">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-1">{location.name}</h3>
-                            <p className="text-sm text-gray-500 mb-4 flex items-center">
-                                <MapPin className={`w-4 h-4 mr-2 ${PRIMARY_COLOR_CLASS}`} />
-                                {location.location}
+                          <h3 className="text-xl font-bold text-gray-900 mb-1 line-clamp-1">
+                            {location.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 mb-3 flex items-center">
+                            <MapPin className={`w-4 h-4 mr-1.5 flex-shrink-0 ${PRIMARY_COLOR_CLASS}`} />
+                            <span className="truncate">{addressText}</span>
+                          </p>
+
+                          {location.coordinates?.lat && location.coordinates?.lng && (
+                            <p className="text-xs text-gray-400 mb-4">
+                              GPS: {location.coordinates.lat.toFixed(4)}, {location.coordinates.lng.toFixed(4)}
                             </p>
-                            
-                            {/* CTA Button */}
-                            <a 
-                                href={location.mapUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold rounded-lg text-white bg-[${PRIMARY_COLOR}] hover:bg-[#0278b8] transition-colors duration-300`}
-                            >
-                                Get Directions
-                                <MapPin className="w-4 h-4" />
-                            </a>
+                          )}
                         </div>
+                      </div>
+
+                      <div className="p-6 pt-0 space-y-2">
+                        {/* Get Directions Button */}
+                        <a 
+                          href={directionsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl text-white bg-[#008DDA] hover:bg-[#0278b8] transition-colors duration-300 shadow-sm"
+                        >
+                          <span>Get Directions</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+
+                        {/* View Details Button */}
+                        <button
+                          onClick={() => navigate(`/locations/${location._id}`)}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors duration-300"
+                        >
+                          <span>View Details</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                ))}
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* Load More / See More Button */}
+              {locations.length > 4 && (
+                <div className="mt-12 text-center">
+                  <button
+                    onClick={handleToggleLoadMore}
+                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-white border border-gray-300 hover:border-[#008DDA] text-gray-800 hover:text-[#008DDA] rounded-xl font-semibold shadow-sm hover:shadow-md transition-all text-base"
+                  >
+                    <span>
+                      {visibleCount >= locations.length
+                        ? 'Show Less Locations'
+                        : `See More Locations (${locations.length - visibleCount} remaining)`}
+                    </span>
+                    {visibleCount >= locations.length ? (
+                      <ChevronUp className="w-5 h-5" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
-      <Footer />
 
+      <Footer />
     </div>
   );
 };

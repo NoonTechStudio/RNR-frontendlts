@@ -1,6 +1,7 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Heart, MapPin, Star, Calendar, Users, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 // Importing images
@@ -32,90 +33,65 @@ const eventImages = {
   'Movie Shooting Locations': img12
 };
 
-// Helper to parse capacity string (e.g., '10-80 People') into a number range [min, max]
-const parseCapacity = (capacityStr) => {
-  const match = capacityStr.match(/(\d+)-(\d+)/);
-  if (match) {
-    return { min: parseInt(match[1]), max: parseInt(match[2]) };
-  }
-  // Default to a wide range if format is unexpected
-  return { min: 0, max: 1000 }; 
-};
-
 const events = [
   { 
     title: 'One Day Picnic', 
     image: eventImages['One Day Picnic'], 
-    properties: ['Misty-Wood', 'Riverfront','Swarg Maru Gaam', 'Ambawadi'], 
-    duration: 'Full Day',
     capacity: '5-100 People'
   },
   { 
     title: 'Family Gatherings', 
     image: eventImages['Family Gatherings'], 
-    properties: ['Misty-Wood','Riverfront', 'Ambawadi'], 
-    duration: '4-6 Hours',
     capacity: '10-80 People'
   },
   { 
     title: 'Kitty Parties', 
     image: eventImages['Kitty Parties'], 
-    properties: ['Misty-Wood', 'Ambawadi', 'Swarg Maru Gaam'], 
-    duration: '3-5 Hours',
     capacity: '20-40 People'
   },
   { 
     title: 'Event Organizing', 
     image: eventImages['Event Organizing'], 
-    properties: ['Misty-Wood', 'Riverfront', 'Ambawadi'], 
     capacity: '100-500 People'
   },
   { 
     title: 'Wedding Destination', 
     image: eventImages['Wedding Destination'], 
-    properties: ['Riverfront', 'Ambawadi', 'Misty-Wood'], 
     capacity: '100-300 People'
   },
   { 
     title: 'Pre-wedding Photoshoots', 
     image: eventImages['Pre-wedding Photoshoots'], 
-    properties: ['Riverfront', 'Swarg Maru Gaam'],
     capacity: '10-20 People'
   },
   { 
     title: 'Birthday Party Planning', 
     image: eventImages['Birthday Party Planning'], 
-    properties: ['Misty-Wood', 'Ambawadi', 'Riverfront'], 
     capacity: '20-60 People'
   },
   { 
     title: 'Corporate Event Planning', 
     image: eventImages['Corporate Event Planning'], 
-    properties: ['Misty-Wood', 'Riverfront', 'Ambawadi'], 
     capacity: '50-200 People'
   },
   { 
     title: 'School Picnic Arrangements', 
     image: eventImages['School Picnic Arrangements'], 
-    properties: ['Misty-Wood', 'Riverfront', 'Ambawadi'], 
     capacity: '100-500 People'
   },
   { 
     title: 'Corporate Photoshoots', 
     image: eventImages['Corporate Photoshoots'], 
-    properties: ['Misty-Wood', 'Riverfront', 'Ambawadi'], 
     capacity: '10-30 People'
   },
   { 
     title: 'Music Album Shoot Locations', 
     image: eventImages['Music Album Shoot Locations'], 
-    properties: ['Misty-Wood', 'Riverfront', 'Ambawadi'], 
     capacity: '15-75 People'
   },
   { 
     title: 'Movie Shooting Locations', 
     image: eventImages['Movie Shooting Locations'], 
-    properties: ['Misty-Wood', 'Riverfront', 'Ambawadi', 'Swarg Maru Gaam'],
     capacity: '20-50 People'
   },
 ];
@@ -124,7 +100,6 @@ const events = [
 const SectionWrapper = styled.section`
   padding: 3rem 2rem 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  min-height: 100vh;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -280,18 +255,6 @@ const CardTitle = styled.h3`
   line-height: 1.3;
 `;
 
-const RatingBadge = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: #48bb78;
-  color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
-`;
-
 const CardDetails = styled.div`
   display: flex;
   gap: 1rem;
@@ -305,151 +268,22 @@ const DetailItem = styled.div`
   font-size: 0.85rem;
 `;
 
-const PropertiesSection = styled(motion.div)`
-  margin-top: 2rem;
-  background: white;
-  border-radius: 1.25rem;
-  padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e2e8f0;
-  max-height: 40vh;
-  overflow-y: auto;
-`;
-
-const PropertiesTitle = styled.h3`
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 1.5rem;
-  text-align: center;
-`;
-
-const PropertiesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-`;
-
-const PropertyCard = styled(motion.div)`
-  background: white;
-  border-radius: 1rem;
-  padding: 1.25rem;
-  cursor: pointer;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  
-  &:hover {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border-color: #cbd5e0;
-    transform: translateY(-2px);
-  }
-`;
-
-const PropertyHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
-`;
-
-const PropertyName = styled.h4`
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0;
-`;
-
-const PropertyLocation = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #718096;
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-`;
-
-const PropertyFeatures = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-`;
-
-const FeatureTag = styled.span`
-  background: #edf2f7;
-  color: #4a5568;
-  padding: 0.25rem 0.7rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-`;
-
-const ViewDetailsButton = styled.button`
-  width: 100%;
-  background: #4299e1;
-  color: white;
-  border: none;
-  padding: 0.7rem;
-  border-radius: 10px;
-  font-weight: 600;
-  margin-top: 0.75rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  font-size: 0.9rem;
-  
-  &:hover {
-    background: #3182ce;
-  }
-`;
-
-const HeartIcon = styled(Heart)`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  color: ${props => props.isFavorite ? '#e53e3e' : 'rgba(255, 255, 255, 0.9)'};
-  fill: ${props => props.isFavorite ? '#e53e3e' : 'none'};
-  cursor: pointer;
-  transition: all 0.2s;
-  z-index: 10;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  
-  &:hover {
-    transform: scale(1.2);
-  }
-`;
-
 const Events = () => {
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [favorites, setFavorites] = useState(new Set());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [isManualNav, setIsManualNav] = useState(false);
+  const navigate = useNavigate();
 
-  // Updated mock property details with a capacity range
-  const mockPropertyDetails = [
-    { name: 'Misty-Wood', location: 'Vadodara, Gujarat', features: ['Garden', 'Parking', 'Swimming Pool', 'AC', 'Catering'], capacityRange: { min: 20, max: 250 } },
-    { name: 'Swarg Maru Gaam', location: 'Padra, Gujarat', features: ['Farm View', 'Pool', 'Garden', 'BBQ', 'Nature'], capacityRange: { min: 5, max: 50 } },
-    { name: 'Ambawadi', location: 'Dabhoi, Gujarat', features: ['Forest View', 'Bonfire', 'Nature', 'Wildlife', 'Swimming Pool', 'BBQ', 'Outdoor Dining'], capacityRange: { min: 40, max: 400 } },
-    { name: 'Riverfront', location: 'Savli, Gujarat', features: ['River Bank', 'Flowing Water', 'Nature', 'Isolated Place', 'Sunset Viewpoint', 'Wildlife', 'Exotic Birds', 'BBQ'], capacityRange: { min: 10, max: 150 } },
-    { name: 'Modern Studio', location: 'Vadodara, Gujarat', features: ['Modern Decor', 'Lighting', 'Equipment'], capacityRange: { min: 10, max: 35 } },
-    { name: 'Office Rooftop', location: 'Ahmedabad, Gujarat', features: ['City View', 'Open Air', 'Bar'], capacityRange: { min: 30, max: 100 } },
-    { name: 'Urban Street Art', location: 'Surat, Gujarat', features: ['Graffiti', 'Raw Aesthetic'], capacityRange: { min: 5, max: 25 } },
-  ];
-
-  const handleCardClick = (event) => {
-    setSelectedEvent(event);
-  };
-
-  const toggleFavorite = (index, e) => {
-    e.stopPropagation();
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(index)) {
-      newFavorites.delete(index);
+  const handleCardClick = () => {
+    const locationsElement = document.getElementById('locations');
+    if (locationsElement) {
+      locationsElement.scrollIntoView({ behavior: 'smooth' });
     } else {
-      newFavorites.add(index);
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('locations')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
-    setFavorites(newFavorites);
   };
 
   const nextSlide = () => {
@@ -484,29 +318,6 @@ const Events = () => {
   const cardWidth = 300 + 24;
   const translateX = isManualNav ? -(currentIndex * cardWidth) : 0;
 
-  // --- NEW LOGIC: Filter properties based on event requirements ---
-  const filteredProperties = selectedEvent 
-    ? mockPropertyDetails.filter(property => {
-        // 1. Check if the property is suitable for the event type (by name in properties array)
-        const isSuitableEventType = selectedEvent.properties.includes(property.name);
-        
-        if (!isSuitableEventType) {
-          return false;
-        }
-
-        // 2. Check if the property's capacity can handle the event's required capacity
-        const eventCapacity = parseCapacity(selectedEvent.capacity);
-        const propertyMin = property.capacityRange.min;
-        const propertyMax = property.capacityRange.max;
-        
-        // A property is valid if its capacity range overlaps with the event's required capacity range.
-        // Simplified check: The property's max capacity must be greater than or equal to the event's minimum required capacity.
-        // A more robust check: (eventMax >= propertyMin) AND (eventMin <= propertyMax)
-        return propertyMax >= eventCapacity.min;
-      })
-    : [];
-  // -----------------------------------------------------------------
-
   return (
     <SectionWrapper>
       <HeaderContainer>
@@ -522,9 +333,8 @@ const Events = () => {
           }}
         >
           {duplicatedEvents.map((event, index) => (
-            <CardWrapper key={index} onClick={() => handleCardClick(event)}>
+            <CardWrapper key={index} onClick={handleCardClick}>
               <Card whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                {/* HeartIcon removed from Card, but left in style for future use */}
                 <CardImage src={event.image} alt={event.title} />
                 <CardContent>
                   <CardHeader>
@@ -559,51 +369,6 @@ const Events = () => {
           </NavigationButton>
         </NavigationControls>
       </CarouselContainer>
-
-      {selectedEvent && (
-        <PropertiesSection
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <PropertiesTitle>
-            Recommended Venues for <span style={{ color: '#008DDA' }}>{selectedEvent.title}</span>
-          </PropertiesTitle>
-          <PropertiesGrid>
-            {filteredProperties.length > 0 ? (
-                filteredProperties.map((property, index) => (
-                    <PropertyCard
-                        key={index}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        <PropertyHeader>
-                        <PropertyName>{property.name}</PropertyName>
-                        </PropertyHeader>
-                        <PropertyLocation>
-                        <MapPin size={16} />
-                        {property.location}
-                        </PropertyLocation>
-                        <PropertyFeatures>
-                            {/* Display property capacity */}
-                            <FeatureTag>Capacity: {property.capacityRange.min}-{property.capacityRange.max} People</FeatureTag>
-                            {property.features.map((feature, fIndex) => (
-                                <FeatureTag key={fIndex}>{feature}</FeatureTag>
-                            ))}
-                        </PropertyFeatures>
-                        <ViewDetailsButton>
-                        View Details & Book
-                        </ViewDetailsButton>
-                    </PropertyCard>
-                ))
-            ) : (
-                <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#718096', fontSize: '1.1rem' }}>
-                    No suitable venues found for {selectedEvent.title} based on capacity and type.
-                </p>
-            )}
-          </PropertiesGrid>
-        </PropertiesSection>
-      )}
     </SectionWrapper>
   );
 };
