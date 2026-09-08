@@ -1,4 +1,4 @@
-import { X, CheckCircle, Calendar, User, Phone, MapPin, Utensils, Star, Shield, Clock, CreditCard, Download, ChevronDown, Mail, Home, Users } from 'lucide-react';
+import { X, CheckCircle, Calendar, User, Phone, MapPin, Utensils, Star, Shield, Clock, CreditCard, Download, ChevronDown, Mail, Home, Users, Tag } from 'lucide-react';
 import { formatDate } from '../../utils/locations/locationUitls';
 import { useState, useEffect, useCallback } from 'react';
 
@@ -35,6 +35,12 @@ const BookingModal = ({
   const [showDailySelection, setShowDailySelection] = useState(false);
   const [activeOffer, setActiveOffer] = useState(null);
   const [offerLoading, setOfferLoading] = useState(false);
+
+  // Discount coupon
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, discountPercent }
+  const [couponError, setCouponError] = useState('');
+  const [couponChecking, setCouponChecking] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_CONNECTION_HOST;
   const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
@@ -235,16 +241,77 @@ const getFoodPackages = useCallback(() => {
     return breakdown;
   }, [calculateDays, sameDayCheckout, checkInDate, dailyFoodSelections, getFoodPackages]);
 
-  // Update token amount when total price changes
+  // Coupon discount helpers
+  const couponDiscountPercent = appliedCoupon?.discountPercent || 0;
+  const getDiscountedTotal = useCallback(() => {
+    const sub = calculateTotalPrice();
+    const disc = couponDiscountPercent > 0 ? Math.round((sub * couponDiscountPercent) / 100) : 0;
+    return { subtotal: sub, discountAmount: disc, total: Math.max(0, sub - disc) };
+  }, [calculateTotalPrice, couponDiscountPercent]);
+
+  // Update token amount when total price (or coupon) changes
   useEffect(() => {
-    const totalPrice = calculateTotalPrice();
-    if (totalPrice > 0) {
-      const halfAmount = Math.round((totalPrice * 0.5) / 100) * 100;
+    const { total } = getDiscountedTotal();
+    if (total > 0) {
+      const halfAmount = Math.round((total * 0.5) / 100) * 100;
       setTokenAmount(halfAmount);
     } else {
       setTokenAmount(0);
     }
-  }, [calculateTotalPrice]);
+  }, [getDiscountedTotal]);
+
+  // A coupon can never be combined with an active Offer
+  useEffect(() => {
+    if (activeOffer && appliedCoupon) {
+      setAppliedCoupon(null);
+      setCouponInput('');
+      setCouponError('A special offer is active for these dates — coupons cannot be combined.');
+    }
+  }, [activeOffer, appliedCoupon]);
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    if (activeOffer) {
+      setCouponError('A special offer is active for these dates — coupons cannot be combined.');
+      return;
+    }
+    setCouponChecking(true);
+    setCouponError('');
+    try {
+      const { subtotal } = getDiscountedTotal();
+      const response = await fetch(`${API_BASE_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          locationId: location?._id,
+          bookingDate: checkInDate ? getLocalDateKey(checkInDate) : undefined,
+          subtotal,
+        }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setAppliedCoupon({ code: result.data.code, discountPercent: result.data.discountPercent });
+        setCouponInput(result.data.code);
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(result.error || 'Invalid coupon code');
+      }
+    } catch (error) {
+      console.error('Coupon validation error:', error);
+      setAppliedCoupon(null);
+      setCouponError('Could not validate coupon. Please try again.');
+    } finally {
+      setCouponChecking(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+  };
 
   // Fetch booked dates when modal opens
   useEffect(() => {
@@ -255,6 +322,9 @@ const getFoodPackages = useCallback(() => {
       setSelectedFoodPackage(null);
       setDailyFoodSelections({});
       setShowDailySelection(false);
+      setCouponInput('');
+      setAppliedCoupon(null);
+      setCouponError('');
     }
   }, [showBookingModal, location, fetchBookedDates]);
 
@@ -310,8 +380,8 @@ const getFoodPackages = useCallback(() => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const totalPrice = calculateTotalPrice();
-      const remainingAmount = calculateRemainingAmount();
+      const { total: totalPrice } = getDiscountedTotal();
+      const remainingAmount = Math.max(0, totalPrice - tokenAmount);
       const dailyFoodSelectionsArray = Object.entries(dailyFoodSelections)
         .filter(([_, packageId]) => packageId)
         .map(([date, packageId]) => ({ date, packageId }));
@@ -340,6 +410,7 @@ const getFoodPackages = useCallback(() => {
           extraPersonCharge: location?.pricing?.extraPersonCharge || 0,
           totalPrice,
         },
+        couponCode: appliedCoupon?.code || '',
         sameDayCheckout: sameDayCheckout || location?.propertyDetails?.nightStay === false,
       };
 
@@ -480,11 +551,14 @@ const getFoodPackages = useCallback(() => {
     setDailyFoodSelections({});
     setShowDailySelection(false);
     setActiveOffer(null);
+    setCouponInput('');
+    setAppliedCoupon(null);
+    setCouponError('');
   };
 
   const priceBreakdown = calculatePriceBreakdown();
-  const totalPrice = calculateTotalPrice();
-  const remainingAmount = calculateRemainingAmount();
+  const { subtotal: subtotalPrice, discountAmount: couponDiscountAmount, total: totalPrice } = getDiscountedTotal();
+  const remainingAmount = Math.max(0, totalPrice - tokenAmount);
   const foodPackages = getFoodPackages();
   const dailyBreakdown = getDailyBreakdown();
   const nights = calculateNights();
@@ -515,6 +589,12 @@ const getFoodPackages = useCallback(() => {
                   <span className="text-gray-600">Location:</span>
                   <span className="font-medium truncate ml-2">{location.name}</span>
                 </div>
+                {couponDiscountAmount > 0 && (
+                  <div className="flex justify-between items-center text-green-600">
+                    <span>Discount ({appliedCoupon?.discountPercent}% · {appliedCoupon?.code}):</span>
+                    <span>-₹{couponDiscountAmount.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Total Amount:</span>
                   <span className="font-medium">₹{totalPrice.toLocaleString()}</span>
@@ -622,6 +702,16 @@ const getFoodPackages = useCallback(() => {
                     <span className="font-medium text-green-600">{selectedFoodPackage.name}</span>
                   </div>
                 )}
+                {couponDiscountAmount > 0 && (
+                  <div className="flex justify-between items-center text-sm text-green-600">
+                    <span>Discount ({appliedCoupon?.discountPercent}% · {appliedCoupon?.code})</span>
+                    <span>-₹{couponDiscountAmount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total Amount:</span>
+                  <span className="font-medium">₹{totalPrice.toLocaleString()}</span>
+                </div>
                 <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                   <span className="font-semibold text-gray-900">Total Paid (50%):</span>
                   <span className="font-bold text-green-600 text-xl">₹{tokenAmount.toLocaleString()}</span>
@@ -907,6 +997,61 @@ const getFoodPackages = useCallback(() => {
                 )}
               </section>
 
+              {/* Discount Coupon */}
+              {subtotalPrice > 0 && (
+                <section className="bg-white border border-gray-200 rounded-xl p-5">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-blue-600" />
+                    Have a coupon?
+                  </h3>
+                  {activeOffer ? (
+                    <p className="text-sm text-gray-500">
+                      A special offer is already active for these dates — coupons cannot be combined.
+                    </p>
+                  ) : appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                      <div>
+                        <span className="font-mono font-bold text-green-800">{appliedCoupon.code}</span>
+                        <span className="ml-2 text-sm text-green-700">
+                          {appliedCoupon.discountPercent}% off applied
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveCoupon}
+                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponInput}
+                          onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                          placeholder="Enter coupon code"
+                          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-mono uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          disabled={couponChecking || !couponInput.trim()}
+                          className="px-5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {couponChecking ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                          ) : null}
+                          Apply
+                        </button>
+                      </div>
+                      {couponError && <p className="text-sm text-red-600 mt-2">{couponError}</p>}
+                    </div>
+                  )}
+                </section>
+              )}
+
               {/* Token Amount Info */}
               {totalPrice > 0 && (
                 <section className="bg-blue-50 border border-blue-200 rounded-xl p-5">
@@ -978,6 +1123,18 @@ const getFoodPackages = useCallback(() => {
                       <span>Food package</span>
                       <span className="text-green-600">₹{priceBreakdown.foodPrice.toLocaleString()}</span>
                     </div>
+                  )}
+                  {couponDiscountAmount > 0 && (
+                    <>
+                      <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>₹{subtotalPrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-green-600">
+                        <span>Discount ({appliedCoupon?.discountPercent}% · {appliedCoupon?.code})</span>
+                        <span>-₹{couponDiscountAmount.toLocaleString()}</span>
+                      </div>
+                    </>
                   )}
                   <div className="flex justify-between pt-3 border-t border-gray-300 font-bold text-lg">
                     <span>Total</span>
