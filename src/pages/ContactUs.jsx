@@ -106,19 +106,25 @@ const ContactUs = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmissionStatus(null);
 
-    setTimeout(() => {
-      console.log('Form submitted:', formData);
+    try {
+      await axios.post(`${API_BASE_URL}/contact`, formData);
       setIsSubmitting(false);
       setSubmissionStatus('success');
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
       setTimeout(() => setSubmissionStatus(null), 5000);
-    }, 1500);
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      setIsSubmitting(false);
+      setSubmissionStatus('error');
+      setTimeout(() => setSubmissionStatus(null), 5000);
+    }
   };
+
 
   const InputField = ({ label, name, type = 'text', icon: Icon }) => (
     <div className="relative">
