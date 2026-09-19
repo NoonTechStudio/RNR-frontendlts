@@ -1,5 +1,6 @@
 import { X, CheckCircle, Calendar, User, Phone, MapPin, Utensils, Star, Shield, Clock, CreditCard, Download, ChevronDown, Mail, Home, Users, Tag } from 'lucide-react';
 import { formatDate } from '../../utils/locations/locationUitls';
+import CancellationPolicyCard from './CancellationPolicyCard';
 import { useState, useEffect, useCallback } from 'react';
 
 // HELPER: Get YYYY-MM-DD in Local Time (prevents timezone shift)
@@ -719,6 +720,9 @@ const getFoodPackages = useCallback(() => {
                 <div className="text-sm text-gray-600">
                   Remaining: <span className="font-medium text-orange-600">₹{remainingAmount.toLocaleString()}</span> (pay at property)
                 </div>
+                <div className="pt-2 text-xs text-gray-500">
+                  Need to cancel? Refunds follow our cancellation policy (100% if 7+ days before check-in, 50% if 3+ days, 25% if 48 hours+). Call +91 90990 48961.
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 mb-3">
@@ -1066,10 +1070,7 @@ const getFoodPackages = useCallback(() => {
                       <p className="text-xs text-blue-600">(to be paid at property)</p>
                     </div>
                   </div>
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-                    <p className="font-medium">⚠️ Non-refundable</p>
-                    <p className="mt-1">This token amount (50%) is non-refundable in case of cancellation.</p>
-                  </div>
+                  <CancellationPolicyCard className="mt-4" />
                 </section>
               )}
             </div>
