@@ -15,6 +15,7 @@ import {
 import LoadingSkeleton from '../components/Location/LoadingSkeletion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { CANCELLATION_TERM_TITLE, getCancellationTermDescription } from '../utils/locations/cancellationPolicy';
 
 // Utils
 import {
@@ -374,7 +375,7 @@ function LocationDetail() {
                 { pointNumber: 1, title: "Charges for Children", description: "Children aged between 5 and 8 years will be charged at half rate." },
                 { pointNumber: 2, title: "Charges for Adults", description: "Individuals above 8 years will be charged at the full rate." },
                 { pointNumber: 3, title: "Advance Payment", description: "Entry to the resort is permitted only after the advance payment is cleared." },
-                { pointNumber: 4, title: "Cancellation Policy", description: "No refunds will be issued for canceled bookings." },
+                { pointNumber: 4, title: CANCELLATION_TERM_TITLE, description: getCancellationTermDescription() },
                 { pointNumber: 5, title: "Personal Responsibility", description: "Participation in activities and use of the swimming pool is at the individual's own risk. The resort is not liable for any injuries or accidents." }
               ]
             });
